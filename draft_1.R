@@ -21,6 +21,7 @@ sum(is.na(train))
 #check which collumn has missing data
 missing <- sapply(train,function(x)sum(is.na(x))) %>% 
   data.table()
+
 #get title from name collumn http://www.txt2re.com/index-python.php3?s=%2C+Mr.&submit=Show+Matches
 # get character between , and .
 train[,"Name"] <- sapply(train[,"Name", with = FALSE],  FUN =function(x) stringr::str_match(x, paste("\\,.*?\\.",sep=""))[,-2]) %>% 
@@ -38,7 +39,10 @@ preProcess<- preProcess(x = train[,c("Age", "Fare"), with = FALSE],
                         outcome = NULL,
                         fudge = .2,
                         numUnique = 3)
-train[,c("Age","Fare")] <- predict(preProcess, train[,c("Age","Fare"), with = FALSE])
+
+train[,c("Age","Fare")] <- predict(preProcess, 
+                                   train[,c("Age","Fare"), 
+                                         with = FALSE])
 
 
 
@@ -99,7 +103,7 @@ registerDoParallel(cl)
 #establish model
 model <- caret::train(data = train_set,
                       Survived~.,
-                      method = "Boruta",
+                      method = "rf",
                       #preProcess = c("center","scale","pca"),
                       na.action = na.omit,
                       metric = "ROC",
@@ -184,7 +188,7 @@ test_pred <- predict(model,
                      type = "prob")
 
 prediction <- factor(ifelse(test_pred[,"y"]>0.5,"1","0")) %>% 
-  data.table() %>% 
+  data.table()
 
 final <- cbind(pasid,prediction)  
 colnames(final) <- c("PassengerID","Survived")
